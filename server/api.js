@@ -12,7 +12,17 @@ apiRouter.param('minionId', (req, res, next, mid) => {
     } else {
         res.status(404).send(`minonId: ${minionId} Not Found`);
     }
-})
+});
+
+apiRouter.param('ideaId', (req, res, next, iid) => {
+    let ideaId = db.getFromDatabaseById('ideas', iid);
+    if (ideaId) {
+        req.ideaId = iid;
+        next();
+    } else {
+        res.status(404).send(`ideaId: ${ideaId} Not Found`);
+    }
+});
 
 apiRouter.get('/minions', (req, res, next) => {
     let data = db.getAllFromDatabase('minions');
@@ -52,6 +62,40 @@ apiRouter.delete('/minions/:minionId', (req, res, next) => {
         res.status(404).send('delete has failed');
     }
 });
+
+apiRouter.get('/ideas', (req, res, next) => {
+    let ideaObject = db.getAllFromDatabase('ideas');
+    if (ideaObject) {
+        res.status(200).send(ideaObject);
+    } else {
+        res.status(400).send('failed to retrieve ideas');
+    }
+});
+
+apiRouter.post('/ideas', (req, res, next) => {
+    let ideaObject = req.body;
+    let ideaCreateReturn = db.addToDatabase('ideas', ideaObject);
+    if (ideaCreateReturn) {
+        res.status(201).send(ideaCreateReturn);
+    } else {
+        res.status(400).send('failed to create post');
+    }
+});
+
+apiRouter.get('/ideas/:ideaId', (req, res, next) => {
+    let ideaObject = db.getFromDatabaseById('ideas', req.ideaId);
+    res.status(200).send(ideaObject);
+});
+
+apiRouter.put('/ideas/:ideaId', (req, res, next) => {
+    let updateObject = req.body;
+    let updateReturn = db.updateInstanceInDatabase('ideas', updateObject);
+    if (updateReturn) {
+        res.status(201).send(updateReturn);
+    } else {
+        res.status(400).send('failed to update');
+    }
+})
 
 apiRouter.use((err, req, res, next) => {
     const status = err.status || 400;
