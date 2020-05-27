@@ -1,8 +1,10 @@
 const express = require('express');
 const apiRouter = express.Router();
 const db = require('./db');
+const checkMillionDollarIdea = require('./checkMillionDollarIdea');
 
 module.exports = apiRouter;
+
 
 apiRouter.param('minionId', (req, res, next, mid) => {
     let minionId = db.getFromDatabaseById('minions', mid);
@@ -32,7 +34,7 @@ apiRouter.get('/minions', (req, res, next) => {
 apiRouter.get('/minions/:minionId', (req, res, next) => {
     let data = db.getFromDatabaseById('minions', req.minionId);
     res.status(200).send(data);
-})
+});
 
 apiRouter.post('/minions', (req, res, next) => {
     let minionObj = req.body;
@@ -72,6 +74,8 @@ apiRouter.get('/ideas', (req, res, next) => {
     }
 });
 
+// check if idea is valid
+apiRouter.post('/ideas', checkMillionDollarIdea);
 apiRouter.post('/ideas', (req, res, next) => {
     let ideaObject = req.body;
     let ideaCreateReturn = db.addToDatabase('ideas', ideaObject);
@@ -95,7 +99,41 @@ apiRouter.put('/ideas/:ideaId', (req, res, next) => {
     } else {
         res.status(400).send('failed to update');
     }
-})
+});
+
+
+apiRouter.delete('/ideas/:ideaId', (req, res, next) => {
+    let deleteReturn = db.deleteFromDatabasebyId('ideas', req.ideaId);
+    if (deleteReturn) {
+        res.status(204).send('No Content');
+    } else {
+        res.status(404).send('delete has failed');
+    }
+});
+
+apiRouter.get('/meetings', (req, res, next) => {
+    let data = db.getAllFromDatabase('meetings');
+    res.status(200).send(data);
+});
+
+apiRouter.post('/meetings', (req, res, next) => {
+    let meetingObject = db.createMeeting();
+    let meetingReturn = db.addToDatabase('meetings', meetingObject);
+    if (meetingReturn) {
+        res.status(201).send(meetingReturn);
+    } else {
+        res.status(400).send('Failed to create new meeting');
+    }
+});
+
+apiRouter.delete('/meetings', (req, res, next) => {
+    let deleteReturn = db.deleteAllFromDatabase('meetings');
+    if (deleteReturn) {
+        res.status(204).send(deleteReturn);
+    } else {
+        res.status(400).send('cannot delete');
+    }
+});
 
 apiRouter.use((err, req, res, next) => {
     const status = err.status || 400;
